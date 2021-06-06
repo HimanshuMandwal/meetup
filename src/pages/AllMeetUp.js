@@ -1,4 +1,6 @@
+import { useState , useEffect } from 'react';
 import MeetUpList from '../components/meetups/MeetupList';
+
 
 const DUMMY_DATA = [
   {
@@ -23,10 +25,42 @@ const DUMMY_DATA = [
 
 
 function AllMeetupPage() {
+  const [isLoading , setIsLoading] = useState(true);
+  const [loadedMeetUps , setLoadedMeetUps] = useState([]);
+
+  useEffect(()=>{
+    setIsLoading(true);
+    fetch('https://meetup-ff301-default-rtdb.firebaseio.com/meetups.json')
+    .then(response => {return response.json()})
+    .then((data)=>{
+      setIsLoading(false);
+      const meetUps = [];
+      for(const key in data) {
+        const meetUp = {
+          id: key,
+          ...data[key],
+        }
+        meetUps.push(meetUp);
+      }
+       setLoadedMeetUps(meetUps);
+      // console.log(data);
+    });
+  },[]);
+
+  if(isLoading){
+    return (
+      <section>
+        <p>Loading...</p>
+      </section>
+    )
+  }
   return (<div>
     <h1>All Meetups</h1>
-    <MeetUpList meetups= {DUMMY_DATA}/>
+    <MeetUpList meetups= {loadedMeetUps}/>
   </div>)
 }
 
 export default AllMeetupPage;
+
+// to prevent infinite loop we use react useEffect hook to call the render only ones
+// without array at the end of useEffect the function executes infinitly empty array [] then the react run the function at only at once when component render
